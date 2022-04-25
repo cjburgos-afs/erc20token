@@ -35,4 +35,32 @@ contract('ERC20Token', (accounts) => {
         assert.equal((balanceAfter.toNumber() - balanceBefore.toNumber()), mintAmount);
     });
 
+    it('should not allow non-owner to mint tokens', async () => {
+        try {
+            await erc20Token.mint(1,{from: accounts[1]});
+            expect.fail("Only owner allowed to mint");
+        } catch (err) {
+            expect(err).to.be.instanceOf(Error);
+        };
+    });
+
+    it('should transfer tokens from one account to another successfully', async () => {
+        let mintAmount = 5;
+        let transferAmount = 1;
+        let recipient = accounts[1];
+
+        let recipientBalanceBefore = await erc20Token.balanceOf(recipient);
+
+        await erc20Token.mint(mintAmount);
+        await erc20Token.transfer(recipient, transferAmount);
+
+        let recipientBalanceAfter = await erc20Token.balanceOf(recipient);
+        let adminBalanceAfter = await erc20Token.balanceOf(admin);
+
+        assert.equal((recipientBalanceAfter.toNumber() - recipientBalanceBefore.toNumber()), transferAmount); 
+        
+        assert.equal((mintAmount - adminBalanceAfter.toNumber()),recipientBalanceAfter.toNumber());
+
+    });
+
 });
